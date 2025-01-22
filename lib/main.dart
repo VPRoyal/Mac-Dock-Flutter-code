@@ -295,7 +295,6 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
   /// It cancenl the sliding if any other event is fired up and reposition has
   /// not been started, to prevent unsual glitches to happen.
   Future<void> repositionItem() async {
-    if (drag.cancelSliding) return;
     drag.setSliding = true;
     Rect draggedRect = _dragItemKey!.currentState!.overlay.rect;
     drag.setNewIndex = findNearestIndex(draggedRect);
@@ -303,6 +302,7 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
       drag.setSliding = false;
       return;
     }
+    if (drag.cancelSliding || !drag.isHovering) return;
     drag.setSlidingCompleter = Completer<void>();
     int start = drag.dragIndex, end = drag.newIndex;
     int moveFactor = (end - start) > 0 ? 1 : -1;
@@ -342,7 +342,7 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
   /// It waits for sliding animation to complete, if it's in between.
   Future<void> dragInEvent() async {
     drag.dragInDebounce?.cancel();
-    drag._dragInDebounce = Timer(Duration(milliseconds: 100), () async {
+    drag._dragInDebounce = Timer(Duration(milliseconds: 500), () async {
       if (drag.isSliding) {
         await drag.slidingCompleter?.future;
       }
@@ -352,7 +352,7 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
         reindexing(drag.dragIndex, drag.newIndex);
         drag.setDragIndex = drag.newIndex;
       }
-      await Future.delayed(Duration(milliseconds: 200));
+      // await Future.delayed(Duration(milliseconds: 200));
       await _dragItemKey!.currentState!.growAnimation();
     });
   }
@@ -363,12 +363,12 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
   /// [dragInEvent]
   Future<void> dragOutEvent() async {
     drag.dragOutDebounce?.cancel();
-    drag.setSlidingDebounce = Timer(Duration(milliseconds: 100), () async {
+    drag.setSlidingDebounce = Timer(Duration(milliseconds: 300), () async {
       if (drag.isSliding) {
         await drag.slidingCompleter?.future;
       }
       drag.setCancelSliding = true;
-      await Future.delayed(Duration(milliseconds: 200));
+      // await Future.delayed(Duration(milliseconds: 200));
       await _dragItemKey!.currentState!.shrinkAnimation();
       drag.setCancelSliding = false;
     });
@@ -414,7 +414,7 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
     if (!drag.isDragging) return;
     if (drag.isHovering && !drag.isSliding) {
       drag.slidingDebounce?.cancel();
-      drag.setSlidingDebounce = Timer(Duration(milliseconds: 100), () async {
+      drag.setSlidingDebounce = Timer(Duration(milliseconds: 300), () async {
         await repositionItem();
       });
     }
