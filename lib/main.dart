@@ -429,7 +429,6 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
   /// This method is called when a drag gesture ends. It finalizes the drag
   /// operation, resets the drag state, and triggers any necessary animations.
   void onDragEnd(DragEndDetails details) async {
-    print("dragEnd event: ${drag.isDragging}");
     if (!drag.isDragging) return;
     drag.setDragging = false;
 
@@ -642,7 +641,7 @@ class ChildState extends ChangeNotifier {
   /// Calculates and returns the bounding rectangle of the child widget.
   Rect rect(BuildContext context) {
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    Offset basePosition = renderBox.localToGlobal(Offset(_alignment.dx, 0));
+    Offset basePosition = renderBox.localToGlobal(_alignment);
     return (basePosition & _size);
   }
 }
@@ -869,12 +868,10 @@ class _DockItemState extends State<DockItem> with TickerProviderStateMixin {
   /// Animates the growth of the dock item, making it visible.
   Future<void> growAnimation() async {
     await anim.scalingController.reverse();
-    childWidget.setVisibility = true;
   }
 
   /// Animates the shrinkage of the dock item, making it invisible.
   Future<void> shrinkAnimation() async {
-    childWidget.setVisibility = false;
     await anim.scalingController.forward();
   }
 
@@ -935,16 +932,16 @@ class _DockItemState extends State<DockItem> with TickerProviderStateMixin {
   /// Ends the drag event, resetting the item and hiding the overlay.
   Future<void> dragEnd() async {
     base.setSideMargin = _standMargin;
-    anim.scalingController.reset();
+    setState(() {
+      anim.setDragging = false;
+    });
     await growAnimation();
     Offset initialPosition = overlay.position;
     Offset finalPosition = calcOverlayPosition();
     overlay.setDragEndPosition(initialPosition, finalPosition);
     await anim.dragController.forward(from: 0);
-    setState(() {
-      anim.setDragging = false;
-      overlay.hide();
-    });
+
+    overlay.hide();
     anim.dragController.reset();
     anim.scalingController.reset();
     anim.translationController.reset();
