@@ -341,6 +341,7 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
   ///
   /// It waits for sliding animation to complete, if it's in between.
   Future<void> dragInEvent() async {
+    drag.dragOutDebounce?.cancel();
     drag.dragInDebounce?.cancel();
     drag._dragInDebounce = Timer(Duration(milliseconds: 500), () async {
       if (drag.isSliding) {
@@ -362,6 +363,7 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
   /// Uses the same debounce [Timer] and waiting functionality as for
   /// [dragInEvent]
   Future<void> dragOutEvent() async {
+    drag.dragInDebounce?.cancel();
     drag.dragOutDebounce?.cancel();
     drag.setSlidingDebounce = Timer(Duration(milliseconds: 300), () async {
       if (drag.isSliding) {
@@ -414,7 +416,7 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
     if (!drag.isDragging) return;
     if (drag.isHovering && !drag.isSliding) {
       drag.slidingDebounce?.cancel();
-      drag.setSlidingDebounce = Timer(Duration(milliseconds: 300), () async {
+      drag.setSlidingDebounce = Timer(Duration(milliseconds: 200), () async {
         await repositionItem();
       });
     }
@@ -427,9 +429,11 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
   /// This method is called when a drag gesture ends. It finalizes the drag
   /// operation, resets the drag state, and triggers any necessary animations.
   void onDragEnd(DragEndDetails details) async {
+    print("dragEnd event: ${drag.isDragging}");
     if (!drag.isDragging) return;
-    await _dragItemKey!.currentState!.dragEnd();
     drag.setDragging = false;
+
+    await _dragItemKey!.currentState!.dragEnd();
     if (!drag.isHovering) await onHoverOutEvent();
     _dragItemKey = null;
     drag.setDragIndex = -1;
@@ -931,6 +935,7 @@ class _DockItemState extends State<DockItem> with TickerProviderStateMixin {
   /// Ends the drag event, resetting the item and hiding the overlay.
   Future<void> dragEnd() async {
     base.setSideMargin = _standMargin;
+    anim.scalingController.reset();
     await growAnimation();
     Offset initialPosition = overlay.position;
     Offset finalPosition = calcOverlayPosition();
