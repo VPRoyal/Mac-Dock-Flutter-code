@@ -302,7 +302,10 @@ class _DockState extends State<Dock> with TickerProviderStateMixin {
       drag.setSliding = false;
       return;
     }
-    if (drag.cancelSliding || !drag.isHovering) return;
+    if (drag.cancelSliding || !drag.isHovering) {
+      drag.setSliding = false;
+      return;
+    }
     drag.setSlidingCompleter = Completer<void>();
     int start = drag.dragIndex, end = drag.newIndex;
     int moveFactor = (end - start) > 0 ? 1 : -1;
