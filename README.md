@@ -23,9 +23,7 @@ This README file provides an overview and explanation of the Flutter application
      - [Base State Class](#base-state-class)
      - [Child State Class](#child-state-class)
      - [Overlay State Class](#overlay-state-class)
-     - - [Animation State Class](#animation-state-class)
-    - [Application Logic Implementation](#)
-4. [Dart Documentation Guidelines](#dart-documentation-guidelines)
+     - [Animation State Class](#animation-state-class)
 
 ## Introduction
 
